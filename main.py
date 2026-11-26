@@ -1,27 +1,32 @@
-#!/usr/bin/env python3
-"""One Line to Your Younger Self — make.fun entry.
+"""make.fun entry — a letter to a younger self, in one line.
 
-Writes a single line, in English, that the writer would send back to their
-younger self if one line were all they got. Deterministic: the same line,
-every run.
+Writes exactly one line (no trailing newline) to /output/entry.txt.
+Standard library only; no network, no randomness, no clock.
 """
 
-import os
+from pathlib import Path
 
-LINE = (
-    "The night you sleep on the floor with a dead phone and nothing in your "
-    "pocket is the night you learn nobody's coming \u2014 and that's the best "
-    "news you'll ever get."
-)
+LINE = "The night you sleep on the floor with a dead phone and nothing in your pocket is the night you learn nobody's coming — and that's the best news you'll ever get."
+
+OUTPUT_PATH = Path("/output/entry.txt")
+
+
+def validate(line: str) -> None:
+    """Local gate: the entry must be a single line of 1-200 characters."""
+    assert 1 <= len(line) <= 200, f"line length out of range: {len(line)}"
+    assert "\n" not in line and "\r" not in line, "line must be a single line"
 
 
 def main() -> None:
-    assert 1 <= len(LINE) <= 200, f"line is {len(LINE)} chars, must be 1-200"
-    assert LINE.strip() == LINE
-    out_dir = "/output"
-    os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
-        f.write(LINE)
+    validate(LINE)
+
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_bytes(LINE.encode("utf-8"))
+
+    # Verify: re-read the written file and confirm its bytes match exactly.
+    written = OUTPUT_PATH.read_bytes()
+    assert written == LINE.encode("utf-8"), "written bytes do not match the intended line"
+    validate(written.decode("utf-8"))
 
 
 if __name__ == "__main__":
